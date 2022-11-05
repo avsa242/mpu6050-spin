@@ -233,13 +233,17 @@ PUB accel_scale(g): curr_scl
 PUB clock_src(src): curr_src
 ' Set sensor clock source
 '   Valid values:
-'       INT20 (0): Internal 20MHz oscillator
-'      *AUTO (1): Automatically select best choice (PLL if ready, else internal oscillator)
+'       INT8 (0): Internal 8MHz oscillator
+'       PLL_GYRO_X (1): PLL with X axis gyroscope reference
+'       PLL_GYRO_Y (2): PLL with Y axis gyroscope reference
+'       PLL_GYRO_Z (3): PLL with Z axis gyroscope reference
+'       PLL_EXT_32K (4): PLL with external 32.768kHz reference
+'       PLL_EXT_19M2 (5): PLL with external 19.2MHz reference
 '       CLKSTOP (7): Stop clock and hold in reset
     curr_src := 0
     readreg(core#PWR_MGMT_1, 1, @curr_src)
     case src
-        INT20, AUTO, CLKSTOP:
+        INT8, PLL_GYRO_X..PLL_EXT_19M2:
         other:
             return curr_src & core#CLKSEL_BITS
 
