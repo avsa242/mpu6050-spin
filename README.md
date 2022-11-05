@@ -8,8 +8,8 @@ This is a P8X32A/Propeller, P2X8C4M64P/Propeller 2 driver object for the InvenSe
 ## Salient Features
 
 * I2C connection at up to 400kHz
-* Read accelerometer (raw, micro-g's), gyroscope (raw, micro-dps), magnetometer data (raw, gauss (untested/unverified), nano-Teslas (untested/unverified))
-* Set accel, gyro full-scale, mag ADC res
+* Read accelerometer (raw, micro-g's), gyroscope (raw, micro-dps)
+* Set accel, gyro full-scale
 * Data-ready flags
 * Interrupt support: pin active state, output type, latching, read state
 * Set bias offsets
