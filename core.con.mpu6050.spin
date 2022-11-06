@@ -5,7 +5,7 @@
     Description: MPU6050-specific constants
     Copyright (c) 2022
     Started Nov 5, 2022
-    Updated Nov 5, 2022
+    Updated Nov 6, 2022
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -38,9 +38,15 @@ CON
         DLPF_CFG_MASK           = (DLPF_CFG_BITS << DLPF_CFG) ^ CONFIG_MASK
 
     GYRO_CFG                    = $1B
-    GYRO_CFG_MASK               = $18
+    GYRO_CFG_MASK               = $F8
+        XG_ST                   = 7
+        YG_ST                   = 6
+        ZG_ST                   = 5
+        XYZG_ST                 = 4
         GYRO_FS_SEL             = 3
         GYRO_FS_SEL_BITS        = %11
+        XYZG_ST_BITS            = %111
+        XYZG_ST_MASK            = (XYZG_ST_BITS << XYZG_ST) ^ GYRO_CFG_MASK
         GYRO_FS_SEL_MASK        = (GYRO_FS_SEL_BITS << GYRO_FS_SEL) ^ GYRO_CFG_MASK
 
     ACCEL_CFG                   = $1C
@@ -48,14 +54,27 @@ CON
         XA_ST                   = 7
         YA_ST                   = 6
         ZA_ST                   = 5
+        XYZA_ST                 = 5
         AFS_SEL                 = 3
         AFS_SEL_BITS            = %11
+        XYZA_ST_BITS            = %111
         XA_ST_MASK              = (1 << XA_ST) ^ ACCEL_CFG_MASK
         YA_ST_MASK              = (1 << YA_ST) ^ ACCEL_CFG_MASK
         ZA_ST_MASK              = (1 << ZA_ST) ^ ACCEL_CFG_MASK
+        XYZA_ST_MASK            = (1 << XYZA_ST) ^ ACCEL_CFG_MASK
         AFS_SEL_MASK            = AFS_SEL_BITS ^ ACCEL_CFG_MASK
 
     FIFO_EN                     = $23
+    FIFO_EN_MASK                = $FF
+        TEMP_FIFO_EN            = 7
+        XG_FIFO_EN              = 6
+        YG_FIFO_EN              = 5
+        ZG_FIFO_EN              = 4
+        ACCEL_FIFO_EN           = 3
+        SLV2_FIFO_EN            = 2
+        SLV1_FIFO_EN            = 1
+        SLV0_FIFO_EN            = 0
+
     I2C_MST_CTRL                = $24
     I2C_SLV0_ADDR               = $25
     I2C_SLV0_REG                = $26
@@ -158,12 +177,16 @@ CON
     I2C_MST_DELAY_CTRL          = $67
 
     SIGNAL_PATH_RESET           = $68
+    SIGNAL_PATH_RESET_MASK      = $07
+        GYRO_RESET              = 2
+        ACCEL_RESET             = 1
+        TEMP_RESET              = 0
 
     USER_CTRL                   = $6A
     USER_CTRL_MASK              = $77
         FIFOEN                  = 6
         I2C_MST_EN              = 5
-        I2C_IF_DIS              = 4
+        I2C_IF_DIS              = 4             ' 6000: DISABLE PRIMARY I2C, ENA SPI; 6050: ALWAYS WRITE 0
         FIFO_RST                = 2
         I2C_MST_RST             = 1
         SIG_COND_RST            = 0
@@ -202,6 +225,7 @@ CON
 
     FIFO_COUNTH                 = $72
     FIFO_COUNTL                 = $73
+
     FIFO_R_W                    = $74
 
     WHO_AM_I                    = $75

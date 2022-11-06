@@ -615,13 +615,6 @@ PUB xlg_data_rdy{}: flag
     readreg(core#INT_STATUS, 1, @flag)
     return ((flag & 1) == 1)
 
-PUB xlg_lpf_freq(freq): curr_freq
-' Set accel/gyro/temp sensor low-pass filter cutoff frequency, in Hz
-'   Valid values: 5, 10, 20, 42, 98, 188
-'   Any other value polls the chip and returns the current setting (accel in lower word, gyro in upper word)
-    curr_freq.word[0] := accel_lpf_freq(freq)
-    curr_freq.word[1] := gyro_lpf_freq(freq)
-
 PRI readreg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt
 ' Read nr_bytes from the slave device ptr_buff
     case reg_nr                                 ' validate reg
