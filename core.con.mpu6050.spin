@@ -186,7 +186,7 @@ CON
     USER_CTRL_MASK              = $77
         FIFOEN                  = 6
         I2C_MST_EN              = 5
-        I2C_IF_DIS              = 4             ' 6000: DISABLE PRIMARY I2C, ENA SPI; 6050: ALWAYS WRITE 0
+        I2C_IF_DIS              = 4             ' 6000: DIS. I2C/ENA SPI; 6050: ALWAYS WRITE 0
         FIFO_RST                = 2
         I2C_MST_RST             = 1
         SIG_COND_RST            = 0
