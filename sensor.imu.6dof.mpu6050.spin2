@@ -5,7 +5,7 @@
     Description: Driver for the InvenSense MPU6050 (P2 version)
     Copyright (c) 2022
     Started Nov 6, 2022
-    Updated Nov 6, 2022
+    Updated Nov 13, 2022
     See end of file for terms of use.
     --------------------------------------------
 }
@@ -427,7 +427,7 @@ PUB int_polarity(state): curr_state
     state := ((curr_state & core.LEVEL_MASK) | state) & core.INT_PIN_CFG_MASK
     writereg(core.INT_PIN_CFG, 1, @state)
 
-PUB int_clr_mode(mode): curr_mode
+PUB int_clear_mode(mode): curr_mode
 ' Select mode by which interrupt status may be cleared
 '   Valid values:
 '      *READ_INT_FLAG (0): Only by reading interrupt flags
