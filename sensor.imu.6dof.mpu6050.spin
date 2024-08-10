@@ -429,7 +429,7 @@ PUB gyro_lpf_freq(freq=-2): curr_freq
 ' Set gyroscope output data low-pass filter cutoff frequency, in Hz
 '   Valid values: 5, 10, 21, 44, 94, 184, 260 
 '   Any other value polls the chip and returns the current setting
-    curr_freq := lpf_byp_bits := 0
+    curr_freq := 0
     readreg(core.CONFIG, 1, @curr_freq)
     case freq
         5, 10, 21, 44, 94, 184, 260:
