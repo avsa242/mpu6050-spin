@@ -76,12 +76,6 @@ CON
     CLKSTOP             = 7
 
 
-    DEF_SCL             = 28
-    DEF_SDA             = 29
-    DEF_HZ              = 100_000
-    DEF_ADDR            = 0
-    I2C_MAX_FREQ        = core.I2C_MAX_FREQ
-
     SLAVE               = core.SLAVE_ADDR
     SLAVE_WR            = core.SLAVE_ADDR
     SLAVE_RD            = core.SLAVE_ADDR|1
