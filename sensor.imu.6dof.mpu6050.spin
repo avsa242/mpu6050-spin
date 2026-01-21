@@ -4,8 +4,8 @@
     Description:    Driver for the InvenSense MPU6050 IMU
     Author:         Jesse Burt
     Started:        Nov 5, 2022
-    Updated:        Aug 10, 2024
-    Copyright (c) 2024 - See end of file for terms of use.
+    Updated:        Jan 21, 2026
+    Copyright (c) 2026 - See end of file for terms of use.
 ----------------------------------------------------------------------------------------------------
 }
 #include "sensor.accel.common.spinh"
@@ -419,6 +419,14 @@ PUB gyro_data_rdy(): flag
     return xlg_data_rdy()
 
 
+PUB gyro_lpf_ena(e=-2): s
+' Enable gyroscope data low-pass filter
+'   Returns:    TRUE (-1) if enabled, FALSE (0) otherwise
+    s := 0
+    readreg(core.CONFIG, 1, @s)
+    return (s & core.DLPF_CFG_BITS) <> 0
+
+
 PUB gyro_lpf_freq(freq=-2): curr_freq
 ' Set gyroscope output data low-pass filter cutoff frequency, in Hz
 '   Valid values: 5, 10, 21, 44, 94, 184, 260 
@@ -570,7 +578,7 @@ PUB sleep(state=-2): curr_state
 
 PUB temp_data_rate(rate=-2): curr_rate
 ' Set temperature output data rate, in Hz
-'   Valid values: 4..1000
+'   Valid values: 31..1000
 '   Any other value polls the chip and returns the current setting
 '   NOTE: This setting affects the accelerometer and gyroscope data rate
 '   (hardware limitation)
@@ -600,13 +608,18 @@ PUB temp_scale(scale=-2): curr_scl
             return _temp_scale
 
 
-PUB xlg_data_rate(rate=-2): curr_rate
+PUB xlg_data_rate(rate=-2): curr_rate | mx
 ' Set accelerometer/gyro/temp sensor output data rate, in Hz
-'   Valid values: 4..1000
+'   Valid values: 31..1000
 '   Any other value polls the chip and returns the current setting
+    if ( gyro_lpf_ena() )
+        mx := 1000
+    else
+        mx := 7936
+
     case rate
-        4..1000:
-            rate := (1000 / rate) - 1
+        31..mx:
+            rate := (mx / rate) - 1
             writereg(core.SMPLRT_DIV, 1, @rate)
         other:
             curr_rate := 0
@@ -662,7 +675,7 @@ PRI writereg(reg_nr, nr_bytes, ptr_buff) | cmd_pkt
 
 DAT
 {
-Copyright 2024 Jesse Burt
+Copyright 2026 Jesse Burt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
