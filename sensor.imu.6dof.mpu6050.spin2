@@ -146,22 +146,22 @@ PUB preset_active()
     gyro_data_rate(CAL_G_DR)
 
 
-PUB accel_axis_ena(xyz_mask=-2): curr_mask
+PUB accel_axis_ena(m=-2): c
 ' Enable data output for Accelerometer - per axis
 '   Valid values: 0 or 1, for each axis:
 '       Bits    210
 '               XYZ
 '   Any other value polls the chip and returns the current setting
-    curr_mask := readreg(core.PWR_MGMT_2)
-    case xyz_mask
+    c := readreg(core.PWR_MGMT_2)
+    case m
         %000..%111:
             ' invert bits because the logic in the chip is actually the reverse
             ' of the method name, i.e., a bit set to 1 _disables_ that axis
-            xyz_mask := ((xyz_mask ^ core.STBY_INVERT) & core.STBY_XYZA_BITS) << core.STBY_XYZA
-            xyz_mask := ((curr_mask & core.STBY_XYZA_MASK) | xyz_mask)
-            writereg(core.PWR_MGMT_2, xyz_mask)
+            m := ((m ^ core.STBY_INVERT) & core.STBY_XYZA_BITS) << core.STBY_XYZA
+            m := ((c & core.STBY_XYZA_MASK) | m)
+            writereg(core.PWR_MGMT_2, m)
         other:
-            return ((curr_mask >> core.STBY_XYZA) & core.STBY_XYZA_BITS) ^ core.STBY_INVERT
+            return ((c >> core.STBY_XYZA) & core.STBY_XYZA_BITS) ^ core.STBY_INVERT
 
 
 PUB accel_bias(x, y, z) | tmp[ACCEL_DOF]
@@ -191,52 +191,52 @@ PUB accel_data(ptr_x, ptr_y, ptr_z) | tmp[2]
     long[ptr_z] := (tmp.word[0] signx 15) - _abias[Z_AXIS]
 
 
-PUB accel_data_rate(rate=-2): curr_rate
+PUB accel_data_rate(r=-2): c
 ' Set accelerometer output data rate, in Hz
 '   Valid values: 31..1000
 '   Any other value polls the chip and returns the current setting
-    return xlg_data_rate(rate)
+    return xlg_data_rate(r)
 
 
-PUB accel_data_rdy(): flag
+PUB accel_data_rdy(): f
 ' Flag indicating new accelerometer data available
 '   Returns: TRUE (-1) if new data available, FALSE (0) otherwise
     return xlg_data_rdy()
 
 
-PUB accel_lpf_freq(freq=-2): curr_freq
+PUB accel_lpf_freq(f=-2): c
 ' Set accelerometer output data low-pass filter cutoff frequency, in Hz
 '   Valid values: 0 (disable), 5, 10, 20, 42, 98, 188
 '   Any other value polls the chip and returns the current setting
-    curr_freq := readreg(core.CONFIG)
-    case freq
+    c := readreg(core.CONFIG)
+    case f
         5, 10, 21, 44, 94, 184, 260:
-            freq := lookdownz(freq: 260, 184, 94, 44, 21, 10, 5)
-            freq := (curr_freq & core.DLPF_CFG_MASK) | freq
-            writereg(core.CONFIG, freq)
+            f := lookdownz(f: 260, 184, 94, 44, 21, 10, 5)
+            f := (c & core.DLPF_CFG_MASK) | f
+            writereg(core.CONFIG, f)
         other:
-            curr_freq &= core.DLPF_CFG_BITS
-            return lookupz(curr_freq: 260, 184, 94, 44, 21, 10, 5)
+            c &= core.DLPF_CFG_BITS
+            return lookupz(c: 260, 184, 94, 44, 21, 10, 5)
 
 
-PUB accel_scale(g=-2): curr_scl
+PUB accel_scale(s=-2): c
 ' Set accelerometer full-scale range, in g's
 '   Valid values: *2, 4, 8, 16
 '   Any other value polls the chip and returns the current setting
-    curr_scl := readreg(core.ACCEL_CFG)
-    case g
+    c := readreg(core.ACCEL_CFG)
+    case s
         2, 4, 8, 16:
-            g := lookdownz(g: 2, 4, 8, 16) << core.AFS_SEL
-            _ares := lookupz(g >> core.AFS_SEL: 61, 122, 244, 488)
+            s := lookdownz(s: 2, 4, 8, 16) << core.AFS_SEL
+            _ares := lookupz(s >> core.AFS_SEL: 61, 122, 244, 488)
             ' (1/16384, 1/8192, 1/4096, 1/2048) * 1_000_000
-            g := ((curr_scl & core.AFS_SEL_MASK) | g) & core.ACCEL_CFG_MASK
-            writereg(core.ACCEL_CFG, g)
+            s := ((c & core.AFS_SEL_MASK) | s) & core.ACCEL_CFG_MASK
+            writereg(core.ACCEL_CFG, s)
         other:
-            curr_scl := (curr_scl >> core.AFS_SEL) & core.AFS_SEL_BITS
-            return lookupz(curr_scl: 2, 4, 8, 16)
+            c := (c >> core.AFS_SEL) & core.AFS_SEL_BITS
+            return lookupz(c: 2, 4, 8, 16)
 
 
-PUB clock_src(src=-2): curr_src
+PUB clock_s(s=-2): c
 ' Set sensor clock source
 '   Valid values:
 '       INT8 (0): Internal 8MHz oscillator
@@ -246,13 +246,13 @@ PUB clock_src(src=-2): curr_src
 '       PLL_EXT_32K (4): PLL with external 32.768kHz reference
 '       PLL_EXT_19M2 (5): PLL with external 19.2MHz reference
 '       CLKSTOP (7): Stop clock and hold in reset
-    curr_src := readreg(core.PWR_MGMT_1)
-    case src
+    c := readreg(core.PWR_MGMT_1)
+    case s
         INT8, PLL_GYRO_X..PLL_EXT_19M2:
-            src := (curr_src & core.CLKSEL_MASK) | src
-            writereg(core.PWR_MGMT_1, src)
+            s := (c & core.CLKSEL_MASK) | s
+            writereg(core.PWR_MGMT_1, s)
         other:
-            return curr_src & core.CLKSEL_BITS
+            return c & core.CLKSEL_BITS
 
 
 PUB dev_id(): id
@@ -268,32 +268,32 @@ PUB i2c_mast_dis() | tmp
     writereg(core.INT_PIN_CFG, tmp)
 
 
-PUB fifo_ena(state=-2): curr_state
+PUB fifo_ena(e=-2): c
 ' Enable the FIFO
 '   Valid values: TRUE (-1 or 1), FALSE (0)
 '   Any other value polls the chip and returns the current setting
 '   NOTE: FALSE disables the interface to the FIFO, but the chip will still write data to it, if FIFO data sources are defined with fifo_src()
-    curr_state := readreg(core.USER_CTRL)
-    case abs(state)
+    c := readreg(core.USER_CTRL)
+    case abs(e)
         0, 1:
-            state := abs(state) << core.FIFOEN
-            state := ((curr_state & core.FIFOEN_MASK) | state)
-            writereg(core.USER_CTRL, state)
+            e := abs(e) << core.FIFOEN
+            e := ((c & core.FIFOEN_MASK) | e)
+            writereg(core.USER_CTRL, e)
         other:
-            return (((curr_state >> core.FIFOEN) & 1) == 1)
+            return (((c >> core.FIFOEN) & 1) == 1)
 
 
-PUB fifo_full(): flag
+PUB fifo_full(): f
 ' Flag indicating FIFO is full
 '   Returns: TRUE (-1) if FIFO is full, FALSE (0) otherwise
 '   NOTE: If this flag is set, the oldest data has already been dropped from the FIFO
-    flag := readreg(core.INT_STATUS)
-    return (((flag >> core.FIFO_OVERFL_INT) & 1) == 1)
+    f := readreg(core.INT_STATUS)
+    return (((f >> core.FIFO_OVERFL_INT) & 1) == 1)
 
 
-PUB fifo_read(nr_bytes, ptr_data)
+PUB fifo_read(len, p_dest)
 ' Read FIFO data
-    readreg(core.FIFO_R_W, nr_bytes, ptr_data)
+    readreg(core.FIFO_R_W, len, p_dest)
 
 
 PUB fifo_reset() | tmp
@@ -302,7 +302,7 @@ PUB fifo_reset() | tmp
     writereg(core.USER_CTRL, tmp)
 
 
-PUB fifo_src(mask=-2): curr_mask
+PUB fifo_src(m=-2): c
 ' Set FIFO source data, as a bitmask
 '   Valid values:
 '       Bits: 76543210
@@ -317,50 +317,50 @@ PUB fifo_src(mask=-2): curr_mask
 '   Any other value polls the chip and returns the current setting
 '   NOTE: If any one of the Gyro axis bits or the temperature bits are set,
 '   all will be buffered, even if they're not explicitly enabled (chip limitation)
-    case mask
+    case m
         %00000000..%11111111:
-            writereg(core.FIFO_EN, mask)
+            writereg(core.FIFO_EN, m)
         other:
-            curr_mask := readreg(core.FIFO_EN)
+            c := readreg(core.FIFO_EN)
             return
 
 
-PUB fifo_nr_unread(): nr_samples
+PUB fifo_nr_unread(): n
 ' Number of unread samples stored in FIFO
 '   Returns: unsigned 13bit
     return readreg(core.FIFO_COUNTH, 2)
 
 
-PUB fsync_polarity(state=-2): curr_state
+PUB fsync_polarity(p=-2): c
 ' Set FSYNC pin active state/logic level
 '   Valid values: LOW (1), *HIGH (0)
 '   Any other value polls the chip and returns the current setting
-    curr_state := readreg(core.INT_PIN_CFG)
-    case state
+    c := readreg(core.INT_PIN_CFG)
+    case p
         LOW, HIGH:
-            state := state << core.FSYNC_INT_LVL
-            state := ((curr_state & core.FSYNC_INT_LVL_MASK) | state) & core.INT_PIN_CFG_MASK
-            writereg(core.INT_PIN_CFG, state)
+            p := p << core.FSYNC_INT_LVL
+            p := ((c & core.FSYNC_INT_LVL_MASK) | p) & core.INT_PIN_CFG_MASK
+            writereg(core.INT_PIN_CFG, p)
         other:
-            return (curr_state >> core.FSYNC_INT_LVL) & 1
+            return (c >> core.FSYNC_INT_LVL) & 1
 
 
-PUB gyro_axis_ena(xyz_mask=-2): curr_mask
+PUB gyro_axis_ena(m=-2): c
 ' Enable data output for Gyroscope - per axis
 '   Valid values: 0 or 1, for each axis:
 '       Bits    210
 '               XYZ
 '   Any other value polls the chip and returns the current setting
-    curr_mask := readreg(core.PWR_MGMT_2)
-    case xyz_mask
+    c := readreg(core.PWR_MGMT_2)
+    case m
         %000..%111:
             ' invert bits because the logic in the chip is actually the reverse
             ' of the method name, i.e., a bit set to 1 _disables_ that axis
-            xyz_mask := ((xyz_mask ^ core.STBY_INVERT) & core.STBY_XYZG_BITS) << core.STBY_XYZG
-            xyz_mask := ((curr_mask & core.STBY_XYZG_MASK) | xyz_mask)
-            writereg(core.PWR_MGMT_2, xyz_mask)
+            m := ((m ^ core.STBY_INVERT) & core.STBY_XYZG_BITS) << core.STBY_XYZG
+            m := ((c & core.STBY_XYZG_MASK) | m)
+            writereg(core.PWR_MGMT_2, m)
         other:
-            return ((curr_mask >> core.STBY_XYZG) & core.STBY_XYZG_BITS) ^ core.STBY_INVERT
+            return ((c >> core.STBY_XYZG) & core.STBY_XYZG_BITS) ^ core.STBY_INVERT
 
 
 PUB gyro_bias(x, y, z) | tmp[GYRO_DOF]
@@ -390,14 +390,14 @@ PUB gyro_data(ptr_x, ptr_y, ptr_z) | tmp[2]
     long[ptr_z] := (tmp.word[0] signx 15) - _gbias[Z_AXIS]
 
 
-PUB gyro_data_rate(rate=-2): curr_rate
+PUB gyro_data_rate(r=-2): c
 ' Set gyroscope output data rate, in Hz
 '   Valid values: 31..1000
 '   Any other value polls the chip and returns the current setting
-    return xlg_data_rate(rate)
+    return xlg_data_rate(r)
 
 
-PUB gyro_data_rdy(): flag
+PUB gyro_data_rdy(): f
 ' Flag indicating new gyroscope data available
 '   Returns: TRUE (-1) if new data available, FALSE (0) otherwise
     return xlg_data_rdy()
@@ -410,68 +410,68 @@ PUB gyro_lpf_ena(e=-2): s
     return (s & core.DLPF_CFG_BITS) <> 0
 
 
-PUB gyro_lpf_freq(freq=-2): curr_freq
+PUB gyro_lpf_freq(f=-2): c
 ' Set gyroscope output data low-pass filter cutoff frequency, in Hz
 '   Valid values: 5, 10, 21, 44, 94, 184, 260 
 '   Any other value polls the chip and returns the current setting
-    curr_freq := readreg(core.CONFIG)
-    case freq
+    c := readreg(core.CONFIG)
+    case f
         5, 10, 21, 44, 94, 184, 260:
-            freq := lookdownz(freq: 260, 184, 94, 44, 21, 10, 5)
-            freq := (curr_freq & core.DLPF_CFG_MASK) | freq
-            writereg(core.CONFIG, freq)
+            f := lookdownz(f: 260, 184, 94, 44, 21, 10, 5)
+            f := (c & core.DLPF_CFG_MASK) | f
+            writereg(core.CONFIG, f)
         other:
-            return lookup(curr_freq & core.DLPF_CFG_BITS: 260, 184, 94, 44, 21, 10, 5)
+            return lookup(c & core.DLPF_CFG_BITS: 260, 184, 94, 44, 21, 10, 5)
 
 
-PUB gyro_scale(scale=-2): curr_scl
+PUB gyro_scale(s=-2): c
 ' Set gyroscope full-scale range, in degrees per second
 '   Valid values: *250, 500, 1000, 2000
 '   Any other value polls the chip and returns the current setting
-    curr_scl := readreg(core.GYRO_CFG)
-    case scale
+    c := readreg(core.GYRO_CFG)
+    case s
         250, 500, 1000, 2000:
-            scale := lookdownz(scale: 250, 500, 1000, 2000) << core.GYRO_FS_SEL
-            _gres := lookupz(scale >> core.GYRO_FS_SEL: 7633, 15_267, 30_487, 60_975)
+            s := lookdownz(s: 250, 500, 1000, 2000) << core.GYRO_FS_SEL
+            _gres := lookupz(s >> core.GYRO_FS_SEL: 7633, 15_267, 30_487, 60_975)
             ' (1/131, 1/65.5, 1/32.8, 1/16.4) * 1_000_000
-            scale := ((curr_scl & core.GYRO_FS_SEL_MASK) | scale)
-            writereg(core.GYRO_CFG, scale)
+            s := ((c & core.GYRO_FS_SEL_MASK) | s)
+            writereg(core.GYRO_CFG, s)
         other:
-            curr_scl := (curr_scl >> core.GYRO_FS_SEL) & core.GYRO_FS_SEL_BITS
-            return lookupz(curr_scl: 250, 500, 1000, 2000)
+            c := (c >> core.GYRO_FS_SEL) & core.GYRO_FS_SEL_BITS
+            return lookupz(c: 250, 500, 1000, 2000)
 
 
-PUB int_polarity(state=-2): curr_state
+PUB int_polarity(p=-2): c
 ' Set interrupt pin active state/logic level
 '   Valid values: LOW (1), *HIGH (0)
 '   Any other value polls the chip and returns the current setting
-    curr_state := readreg(core.INT_PIN_CFG)
-    case state
+    c := readreg(core.INT_PIN_CFG)
+    case p
         LOW, HIGH:
-            state := state << core.LEVEL
-            state := ((curr_state & core.LEVEL_MASK) | state) & core.INT_PIN_CFG_MASK
-            writereg(core.INT_PIN_CFG, state)
+            p := p << core.LEVEL
+            p := ((c & core.LEVEL_MASK) | p) & core.INT_PIN_CFG_MASK
+            writereg(core.INT_PIN_CFG, p)
         other:
-            return ((curr_state >> core.LEVEL) & 1)
+            return ((c >> core.LEVEL) & 1)
 
 
-PUB int_clear_mode(mode=-2): curr_mode
+PUB int_clear_mode(m=-2): c
 ' Select mode by which interrupt status may be cleared
 '   Valid values:
 '      *READ_INT_FLAG (0): Only by reading interrupt flags
 '       ANY (1): By any read operation
 '   Any other value polls the chip and returns the current setting
-    curr_mode := readreg(core.INT_PIN_CFG)
-    case mode
+    c := readreg(core.INT_PIN_CFG)
+    case m
         ANY, READ_INT_FLAG:
-            mode := mode << core.INT_RD_CLEAR
-            mode := ((curr_mode & core.INT_RD_CLEAR_MASK) | mode) & core.INT_PIN_CFG_MASK
-            writereg(core.INT_PIN_CFG, mode)
+            m := m << core.INT_RD_CLEAR
+            m := ((c & core.INT_RD_CLEAR_MASK) | m) & core.INT_PIN_CFG_MASK
+            writereg(core.INT_PIN_CFG, m)
         other:
-            return ((curr_mode >> core.INT_RD_CLEAR) & 1)
+            return ((c >> core.INT_RD_CLEAR) & 1)
 
 
-PUB interrupt(): flag
+PUB interrupt(): f
 ' Indicates one or more interrupts have been asserted
 '   Returns: non-zero result if any interrupts have been asserted:
 '       INT_WAKE_ON_MOTION (64) - Wake on motion interrupt occurred
@@ -481,23 +481,23 @@ PUB interrupt(): flag
     return readreg(core.INT_STATUS)
 
 
-PUB int_latch_ena(state=-2): curr_state
+PUB int_latch_ena(l=-2): c
 ' Latch interrupt pin when interrupt asserted
 '   Valid values:
 '      *FALSE (0): Interrupt pin is pulsed (width = 50uS)
 '       TRUE (-1): Interrupt pin is latched, and must be cleared explicitly
 '   Any other value polls the chip and returns the current setting
-    curr_state := readreg(core.INT_PIN_CFG)
-    case abs(state)
+    c := readreg(core.INT_PIN_CFG)
+    case abs(l)
         0, 1:
-            state := abs(state) << core.LATCH_INT_EN
-            state := ((curr_state & core.LATCH_INT_EN_MASK) | state) & core.INT_PIN_CFG_MASK
-            writereg(core.INT_PIN_CFG, state)
+            l := abs(l) << core.LATCH_INT_EN
+            l := ((c & core.LATCH_INT_EN_MASK) | l) & core.INT_PIN_CFG_MASK
+            writereg(core.INT_PIN_CFG, l)
         other:
-            return (((curr_state >> core.LATCH_INT_EN) & 1) == 1)
+            return (((c >> core.LATCH_INT_EN) & 1) == 1)
 
 
-PUB int_mask(mask=-2): curr_mask
+PUB int_mask(m=-2): c
 ' Allow interrupts to assert INT pin, set by mask, or by ORing together symbols shown below
 '   Valid values:
 '       Bits: %x6x43xx0 (bit positions marked 'x' aren't supported by the device; setting any of them to '1' will be considered invalid and will query the current setting, instead)
@@ -507,29 +507,29 @@ PUB int_mask(mask=-2): curr_mask
 '           3: Enable FSYNC interrupt                   INT_FSYNC           (8)
 '           1: Enable raw Sensor Data Ready interrupt   INT_SENSOR_READY    (1)
 '   Any other value polls the chip and returns the current setting
-    case mask & (core.INT_ENABLE_MASK ^ $FF)    ' check for any invalid bits:
+    case m & (core.INT_ENABLE_MASK ^ $FF)    ' check for any invalid bits:
         0:                                      ' result should be 0 if all ok
-            mask &= core.INT_ENABLE_MASK
-            writereg(core.INT_ENABLE, mask)
+            m &= core.INT_ENABLE_MASK
+            writereg(core.INT_ENABLE, m)
         other:                                  ' one or more invalid bits;
-            curr_mask := readreg(core.INT_ENABLE)
-            return curr_mask & core.INT_ENABLE_MASK
+            c := readreg(core.INT_ENABLE)
+            return c & core.INT_ENABLE_MASK
 
 
-PUB int_outp_type(mode=-2): curr_mode
+PUB int_outp_type(t=-2): c
 ' Set interrupt pin output mode
 '   Valid values:
 '      *INT_PP (0): Push-pull
 '       INT_OD (1): Open-drain
 '   Any other value polls the chip and returns the current setting
-    curr_mode := readreg(core.INT_PIN_CFG)
-    case mode
+    c := readreg(core.INT_PIN_CFG)
+    case t
         INT_PP, INT_OD:
-            mode := mode << core.OPEN
-            mode := ((curr_mode & core.OPEN_MASK) | mode) & core.INT_PIN_CFG_MASK
-            writereg(core.INT_PIN_CFG, mode)
+            t := t << core.OPEN
+            t := ((c & core.OPEN_MASK) | t) & core.INT_PIN_CFG_MASK
+            writereg(core.INT_PIN_CFG, t)
         other:
-            return ((curr_mode >> core.OPEN) & 1)
+            return ((c >> core.OPEN) & 1)
 
 
 PUB reset() | tmp
@@ -538,50 +538,50 @@ PUB reset() | tmp
     writereg(core.PWR_MGMT_1, tmp)
 
 
-PUB sleep(state=-2): curr_state
+PUB sleep(s=-2): c
 ' Enable low-power sleep mode
-    curr_state := readreg(core.PWR_MGMT_1)
-    case state
+    c := readreg(core.PWR_MGMT_1)
+    case s
         0, 1:
-            state := state << core.SLEEP
-            state := ((curr_state & core.SLEEP_MASK) | state)
-            writereg(core.PWR_MGMT_1, state)
+            s := s << core.SLEEP
+            s := ((c & core.SLEEP_MASK) | s)
+            writereg(core.PWR_MGMT_1, s)
         other:
-            return (((curr_state >> core.SLEEP) & 1) == 1)
+            return (((c >> core.SLEEP) & 1) == 1)
 
 
-PUB temp_data_rate(rate=-2): curr_rate
+PUB temp_data_rate(r=-2): c
 ' Set temperature output data rate, in Hz
 '   Valid values: 31..1000
 '   Any other value polls the chip and returns the current setting
 '   NOTE: This setting affects the accelerometer and gyroscope data rate
 '   (hardware limitation)
-    return xlg_data_rate(rate)
+    return xlg_data_rate(r)
 
 
-PUB temperature(): temp
+PUB temperature(): t
 ' Read temperature, in hundredths of a degree
-    temp := readreg(core.TEMP_OUT_H, 2)
+    t := readreg(core.TEMP_OUT_H, 2)
     case _temp_scale
         F:
         other:
-            return ((temp * 1_0000) / 333_87) + 21_00 'XXX unverified
+            return ((t * 1_0000) / 333_87) + 21_00 'XXX unverified
 
 
-PUB temp_scale(scale=-2): curr_scl
+PUB temp_scale(s=-2): c
 ' Set temperature scale used by Temperature method
 '   Valid values:
 '       C (0): Celsius
 '       F (1): Fahrenheit
 '   Any other value returns the current setting
-    case scale
+    case s
         C, F:
-            _temp_scale := scale
+            _temp_scale := s
         other:
             return _temp_scale
 
 
-PUB xlg_data_rate(rate=-2): curr_rate | mx
+PUB xlg_data_rate(r=-2): c | mx
 ' Set accelerometer/gyro/temp sensor output data rate, in Hz
 '   Valid values: 31..1000
 '   Any other value polls the chip and returns the current setting
@@ -590,20 +590,20 @@ PUB xlg_data_rate(rate=-2): curr_rate | mx
     else
         mx := 7936
 
-    case rate
+    case r
         31..mx:
-            rate := (mx / rate) - 1
-            writereg(core.SMPLRT_DIV, rate)
+            r := (mx / r) - 1
+            writereg(core.SMPLRT_DIV, r)
         other:
-            curr_rate := readreg(core.SMPLRT_DIV)
-            return 1000 / (curr_rate + 1)
+            c := readreg(core.SMPLRT_DIV)
+            return 1000 / (c + 1)
 
 
-PUB xlg_data_rdy(): flag
+PUB xlg_data_rdy(): f
 ' Flag indicating new gyroscope/accelerometer data is ready to be read
 '   Returns: TRUE (-1) if new data available, FALSE (0) otherwise
-    flag := readreg(core.INT_STATUS)
-    return ((flag & 1) == 1)
+    f := readreg(core.INT_STATUS)
+    return ((f & 1) == 1)
 
 
 PRI readreg(reg_nr, len=1, p_dest=0): v | cmd_pkt
