@@ -197,11 +197,10 @@ PUB accel_data(ptr_x, ptr_y, ptr_z) | tmp[2]
     long[ptr_z] := ~~tmp.word[0] - _abias[Z_AXIS]
 
 
-PUB accel_data_rate(r=-2): c
+PUB accel_data_rate = xlg_data_rate
 ' Set accelerometer output data rate, in Hz
-'   Valid values: 31..1000
+'   Valid values: 32..1000
 '   Any other value polls the chip and returns the current setting
-    return xlg_data_rate(r)
 
 
 PUB accel_data_rdy(): f
@@ -235,7 +234,7 @@ PUB accel_scale(s=-2): c
             s := lookdownz(s: 2, 4, 8, 16) << core.AFS_SEL
             _ares := lookupz(s >> core.AFS_SEL: 61, 122, 244, 488)
             ' (1/16384, 1/8192, 1/4096, 1/2048) * 1_000_000
-            s := ((c & core.AFS_SEL_MASK) | s) & core.ACCEL_CFG_MASK
+            s := ((c & core.AFS_SEL_MASK) | s)
             writereg(core.ACCEL_CFG, s)
         other:
             c := (c >> core.AFS_SEL) & core.AFS_SEL_BITS
@@ -345,7 +344,7 @@ PUB fsync_polarity(p=-2): c
     case p
         LOW, HIGH:
             p := p << core.FSYNC_INT_LVL
-            p := ((c & core.FSYNC_INT_LVL_MASK) | p) & core.INT_PIN_CFG_MASK
+            p := ((c & core.FSYNC_INT_LVL_MASK) | p)
             writereg(core.INT_PIN_CFG, p)
         other:
             return (c >> core.FSYNC_INT_LVL) & 1
@@ -396,11 +395,10 @@ PUB gyro_data(ptr_x, ptr_y, ptr_z) | tmp[2]
     long[ptr_z] := ~~tmp.word[0] - _gbias[Z_AXIS]
 
 
-PUB gyro_data_rate(r=-2): c
+PUB gyro_data_rate = xlg_data_rate
 ' Set gyroscope output data rate, in Hz
-'   Valid values: 31..1000
+'   Valid values: 32..1000
 '   Any other value polls the chip and returns the current setting
-    return xlg_data_rate(r)
 
 
 PUB gyro_data_rdy(): f
@@ -455,7 +453,7 @@ PUB int_polarity(p=-2): c
     case p
         LOW, HIGH:
             p := p << core.LEVEL
-            p := ((c & core.LEVEL_MASK) | p) & core.INT_PIN_CFG_MASK
+            p := ((c & core.LEVEL_MASK) | p)
             writereg(core.INT_PIN_CFG, p)
         other:
             return ((c >> core.LEVEL) & 1)
@@ -471,7 +469,7 @@ PUB int_clear_mode(m=-2): c
     case m
         ANY, READ_INT_FLAG:
             m := m << core.INT_RD_CLEAR
-            m := ((c & core.INT_RD_CLEAR_MASK) | m) & core.INT_PIN_CFG_MASK
+            m := ((c & core.INT_RD_CLEAR_MASK) | m)
             writereg(core.INT_PIN_CFG, m)
         other:
             return ((c >> core.INT_RD_CLEAR) & 1)
@@ -497,7 +495,7 @@ PUB int_latch_ena(l=-2): c
     case ||(l)
         0, 1:
             l := ||(l) << core.LATCH_INT_EN
-            l := ((c & core.LATCH_INT_EN_MASK) | l) & core.INT_PIN_CFG_MASK
+            l := ((c & core.LATCH_INT_EN_MASK) | l)
             writereg(core.INT_PIN_CFG, l)
         other:
             return (((c >> core.LATCH_INT_EN) & 1) == 1)
@@ -532,7 +530,7 @@ PUB int_outp_type(t=-2): c
     case t
         INT_PP, INT_OD:
             t := t << core.OPEN
-            t := ((c & core.OPEN_MASK) | t) & core.INT_PIN_CFG_MASK
+            t := ((c & core.OPEN_MASK) | t)
             writereg(core.INT_PIN_CFG, t)
         other:
             return ((c >> core.OPEN) & 1)
@@ -556,13 +554,12 @@ PUB sleep(s=-2): c
             return (((c >> core.SLEEP) & 1) == 1)
 
 
-PUB temp_data_rate(r=-2): c
+PUB temp_data_rate = xlg_data_rate
 ' Set temperature output data rate, in Hz
-'   Valid values: 31..1000
+'   Valid values: 32..1000
 '   Any other value polls the chip and returns the current setting
 '   NOTE: This setting affects the accelerometer and gyroscope data rate
 '   (hardware limitation)
-    return xlg_data_rate(r)
 
 
 PUB temperature(): t
@@ -589,12 +586,14 @@ PUB temp_scale(s=-2): c
 
 PUB xlg_data_rate(r=-2): c | mx
 ' Set accelerometer/gyro/temp sensor output data rate, in Hz
-'   Valid values: 31..1000
-'   Any other value polls the chip and returns the current setting
+'   r:
+'       32..1000 when low-pass filtering is enabled
+'       32..8000 when low-pass filtering is disabled
+'       other values:   returns the current setting
     if ( gyro_lpf_ena() )
         mx := 1000
     else
-        mx := 7936
+        mx := 8000
 
     case r
         31..mx:
