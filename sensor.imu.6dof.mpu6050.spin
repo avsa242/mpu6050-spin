@@ -4,7 +4,7 @@
     Description:    Driver for the InvenSense MPU6050 IMU
     Author:         Jesse Burt
     Started:        Nov 5, 2022
-    Updated:        Jan 21, 2026
+    Updated:        Jan 22, 2026
     Copyright (c) 2026 - See end of file for terms of use.
 ----------------------------------------------------------------------------------------------------
 }
@@ -200,7 +200,7 @@ PUB accel_data(ptr_x, ptr_y, ptr_z) | tmp[2]
 
 PUB accel_data_rate(rate=-2): curr_rate
 ' Set accelerometer output data rate, in Hz
-'   Valid values: 4..1000
+'   Valid values: 31..1000
 '   Any other value polls the chip and returns the current setting
     return xlg_data_rate(rate)
 
@@ -401,14 +401,14 @@ PUB gyro_data(ptr_x, ptr_y, ptr_z) | tmp[2]
     tmp := 0
     readreg(core.GYRO_XOUT_H, 6, @tmp)
 
-    long[ptr_x] := ~~tmp.word[2]
-    long[ptr_y] := ~~tmp.word[1]
-    long[ptr_z] := ~~tmp.word[0]
+    long[ptr_x] := ~~tmp.word[2] - _gbias[X_AXIS]
+    long[ptr_y] := ~~tmp.word[1] - _gbias[Y_AXIS]
+    long[ptr_z] := ~~tmp.word[0] - _gbias[Z_AXIS]
 
 
 PUB gyro_data_rate(rate=-2): curr_rate
 ' Set gyroscope output data rate, in Hz
-'   Valid values: 4..1000
+'   Valid values: 31..1000
 '   Any other value polls the chip and returns the current setting
     return xlg_data_rate(rate)
 
