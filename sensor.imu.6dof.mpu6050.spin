@@ -503,21 +503,19 @@ PUB int_latch_ena(l=-2): c
 
 PUB int_mask(m=-2): c
 ' Allow interrupts to assert INT pin, set by mask, or by ORing together symbols shown below
-'   Valid values:
-'       Bits: %x6x43xx0 (bit positions marked 'x' aren't supported by the device; setting any of them to '1' will be considered invalid and will query the current setting, instead)
-'               Function                                Symbol              Value
-'           6: Enable interrupt for wake on motion      INT_WAKE_ON_MOTION (64)
-'           4: Enable interrupt for FIFO overflow       INT_FIFO_OVERFL  (16)
-'           3: Enable FSYNC interrupt                   INT_FSYNC           (8)
-'           1: Enable raw Sensor Data Ready interrupt   INT_SENSOR_READY    (1)
-'   Any other value polls the chip and returns the current setting
-    case m & (core.INT_ENABLE_MASK ^ $FF)    ' check for any invalid bits:
-        0:                                      ' result should be 0 if all ok
-            m &= core.INT_ENABLE_MASK
+'   m: (bitmask)
+'       Bit Function                                 Symbol              Value
+'       6   Enable interrupt for wake on motion      INT_WAKE_ON_MOTION  (64)
+'       4   Enable interrupt for FIFO overflow       INT_FIFO_OVERFL     (16)
+'       3   Enable FSYNC interrupt                   INT_FSYNC           (8)
+'       1   Enable raw Sensor Data Ready interrupt   INT_SENSOR_READY    (1)
+'       other values:   returns the current setting
+    case m
+        0..$ff:
+            m &= core.INT_ENABLE_MASK           ' mask off unused bits
             writereg(core.INT_ENABLE, m)
         other:                                  ' one or more invalid bits;
-            c := readreg(core.INT_ENABLE)
-            return c & core.INT_ENABLE_MASK
+            return (readreg(core.INT_ENABLE) & core.INT_ENABLE_MASK)
 
 
 PUB int_outp_type(t=-2): c
