@@ -279,9 +279,9 @@ PUB fifo_ena(e=-2): c
 '   Any other value polls the chip and returns the current setting
 '   NOTE: FALSE disables the interface to the FIFO, but the chip will still write data to it, if FIFO data sources are defined with fifo_src()
     c := readreg(core.USER_CTRL)
-    case ||(e)
+    case abs(e)
         0, 1:
-            e := ||(e) << core.FIFOEN
+            e := abs(e) << core.FIFOEN
             e := ((c & core.FIFOEN_MASK) | e)
             writereg(core.USER_CTRL, e)
         other:
@@ -492,9 +492,9 @@ PUB int_latch_ena(l=-2): c
 '       TRUE (-1): Interrupt pin is latched, and must be cleared explicitly
 '   Any other value polls the chip and returns the current setting
     c := readreg(core.INT_PIN_CFG)
-    case ||(l)
+    case abs(l)
         0, 1:
-            l := ||(l) << core.LATCH_INT_EN
+            l := abs(l) << core.LATCH_INT_EN
             l := ((c & core.LATCH_INT_EN_MASK) | l)
             writereg(core.INT_PIN_CFG, l)
         other:
