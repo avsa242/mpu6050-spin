@@ -148,10 +148,11 @@ PUB preset_active()
 
 PUB accel_axis_ena(m=-2): c
 ' Enable data output for Accelerometer - per axis
-'   Valid values: 0 or 1, for each axis:
-'       Bits    210
-'               XYZ
-'   Any other value polls the chip and returns the current setting
+'   m: (bitmask)
+'       2:  enable X-axis
+'       1:  enable Y-axis
+'       0:  enable Z-axis
+'       other values:   returns the current setting
     c := readreg(core.PWR_MGMT_2)
     case m
         %000..%111:
@@ -165,7 +166,7 @@ PUB accel_axis_ena(m=-2): c
 
 
 PUB accel_bias(x, y, z) | tmp[ACCEL_DOF]
-' Read or write/manually set accelerometer calibration offset values
+' Read accelerometer calibration offset values
 '   x, y, z: pointers to copy offsets to
     long[x] := (_abias[X_AXIS] signx 15)
     long[y] := (_abias[Y_AXIS] signx 15)
@@ -174,7 +175,7 @@ PUB accel_bias(x, y, z) | tmp[ACCEL_DOF]
 
 PUB accel_set_bias(x, y, z) | tmp[ACCEL_DOF]
 ' Write accelerometer calibration offset values
-'   Valid values:
+'   x, y, z:
 '       -32768..32767 (clamped to range)
     _abias[X_AXIS] := -32768 #> x <# 32767
     _abias[Y_AXIS] := -32768 #> y <# 32767
@@ -183,6 +184,9 @@ PUB accel_set_bias(x, y, z) | tmp[ACCEL_DOF]
 
 PUB accel_data(ptr_x, ptr_y, ptr_z) | tmp[2]
 ' Read accelerometer data
+'   ptr_x:  where to write X-axis data (pointer)
+'   ptr_y:  where to write Y-axis data (pointer)
+'   ptr_z:  where to write Z-axis data (pointer)
     tmp[0] := tmp[1] := 0
     readreg(core.ACCEL_XOUT_H, 6, @tmp)
 
@@ -206,9 +210,10 @@ PUB accel_data_rdy(): f
 
 
 PUB accel_lpf_freq(f=-2): c
-' Set accelerometer output data low-pass filter cutoff frequency, in Hz
-'   Valid values: 0 (disable), 5, 10, 20, 42, 98, 188
-'   Any other value polls the chip and returns the current setting
+' Set accelerometer output data low-pass filter cutoff frequency
+'   f: (Hz)
+'       5, 10, 21, 44, 94, 184, 260 (260 effectively disables the LPF - default)
+'       other values:   returns the current setting
     c := readreg(core.CONFIG)
     case f
         5, 10, 21, 44, 94, 184, 260:
@@ -221,9 +226,10 @@ PUB accel_lpf_freq(f=-2): c
 
 
 PUB accel_scale(s=-2): c
-' Set accelerometer full-scale range, in g's
-'   Valid values: *2, 4, 8, 16
-'   Any other value polls the chip and returns the current setting
+' Set accelerometer full-scale range
+'   s: (gs)
+'       2, 4, 8, 16 (default: 2)
+'       other values:   returns the current setting
     c := readreg(core.ACCEL_CFG)
     case s
         2, 4, 8, 16:
@@ -239,14 +245,15 @@ PUB accel_scale(s=-2): c
 
 PUB clock_s(s=-2): c
 ' Set sensor clock source
-'   Valid values:
-'       INT8 (0): Internal 8MHz oscillator
-'       PLL_GYRO_X (1): PLL with X axis gyroscope reference
-'       PLL_GYRO_Y (2): PLL with Y axis gyroscope reference
-'       PLL_GYRO_Z (3): PLL with Z axis gyroscope reference
-'       PLL_EXT_32K (4): PLL with external 32.768kHz reference
-'       PLL_EXT_19M2 (5): PLL with external 19.2MHz reference
-'       CLKSTOP (7): Stop clock and hold in reset
+'   s:
+'       INT8 (0):           Internal 8MHz oscillator
+'       PLL_GYRO_X (1):     PLL with X axis gyroscope reference
+'       PLL_GYRO_Y (2):     PLL with Y axis gyroscope reference
+'       PLL_GYRO_Z (3):     PLL with Z axis gyroscope reference
+'       PLL_EXT_32K (4):    PLL with external 32.768kHz reference
+'       PLL_EXT_19M2 (5):   PLL with external 19.2MHz reference
+'       CLKSTOP (7):        Stop clock and hold in reset
+'       other values:       returns the current setting
     c := readreg(core.PWR_MGMT_1)
     case s
         INT8, PLL_GYRO_X..PLL_EXT_19M2:
@@ -271,9 +278,12 @@ PUB i2c_mast_dis() | tmp
 
 PUB fifo_ena(e=-2): c
 ' Enable the FIFO
-'   Valid values: TRUE (-1 or 1), FALSE (0)
-'   Any other value polls the chip and returns the current setting
-'   NOTE: FALSE disables the interface to the FIFO, but the chip will still write data to it, if FIFO data sources are defined with fifo_src()
+'   e:
+'       TRUE (-1 or 1): enable
+'       FALSE (0):      disable
+'       other values:   returns the current setting
+'   NOTE: FALSE disables the interface to the FIFO, but the chip will still write data to it,
+'       if FIFO data sources are defined with fifo_src()
     c := readreg(core.USER_CTRL)
     case abs(e)
         0, 1:
@@ -294,28 +304,29 @@ PUB fifo_full(): f
 
 PUB fifo_read(len, p_dest)
 ' Read FIFO data
+'   len:    length/number of bytes to read
+'   p_dest: destination to copy data to (pointer)
     readreg(core.FIFO_R_W, len, p_dest)
 
 
 PUB fifo_reset() | tmp
-' Reset the FIFO    XXX - expand..what exactly does it do?
+' Reset/clear the FIFO
     tmp := 1 << core.FIFO_RST
     writereg(core.USER_CTRL, tmp)
 
 
 PUB fifo_src(m=-2): c
-' Set FIFO source data, as a bitmask
-'   Valid values:
-'       Bits: 76543210
-'           7: Temperature
-'           6: Gyro X-axis
-'           5: Gyro Y-axis
-'           4: Gyro Z-axis
-'           3: Accelerometer
-'           2: I2C Slave #2
-'           1: I2C Slave #1
-'           0: I2C Slave #0
-'   Any other value polls the chip and returns the current setting
+' Set FIFO source data
+'   m: (bitmask)
+'       7: Temperature
+'       6: Gyro X-axis
+'       5: Gyro Y-axis
+'       4: Gyro Z-axis
+'       3: Accelerometer
+'       2: I2C Slave #2
+'       1: I2C Slave #1
+'       0: I2C Slave #0
+'       other values:   returns the current setting
 '   NOTE: If any one of the Gyro axis bits or the temperature bits are set,
 '   all will be buffered, even if they're not explicitly enabled (chip limitation)
     case m
@@ -334,8 +345,10 @@ PUB fifo_nr_unread(): n
 
 PUB fsync_polarity(p=-2): c
 ' Set FSYNC pin active state/logic level
-'   Valid values: LOW (1), *HIGH (0)
-'   Any other value polls the chip and returns the current setting
+'   p:
+'       LOW (1):        active low
+'       HIGH (0):       active high (default)
+'       other values:   returns the current setting
     c := readreg(core.INT_PIN_CFG)
     case p
         LOW, HIGH:
@@ -348,10 +361,11 @@ PUB fsync_polarity(p=-2): c
 
 PUB gyro_axis_ena(m=-2): c
 ' Enable data output for Gyroscope - per axis
-'   Valid values: 0 or 1, for each axis:
-'       Bits    210
-'               XYZ
-'   Any other value polls the chip and returns the current setting
+'   m: (bitmask)
+'       2:  enable X-axis
+'       1:  enable Y-axis
+'       0:  enable Z-axis
+'       other values:   returns the current setting
     c := readreg(core.PWR_MGMT_2)
     case m
         %000..%111:
@@ -374,7 +388,7 @@ PUB gyro_bias(x, y, z) | tmp[GYRO_DOF]
 
 PUB gyro_set_bias(x, y, z)
 ' Write gyroscope calibration offset values
-'   Valid values:
+'   x, y, z:
 '       -32768..32767 (clamped to range)
     _gbias[X_AXIS] := -32768 #> x <# 32767
     _gbias[Y_AXIS] := -32768 #> y <# 32767
@@ -383,6 +397,9 @@ PUB gyro_set_bias(x, y, z)
 
 PUB gyro_data(ptr_x, ptr_y, ptr_z) | tmp[2]
 ' Read gyro data
+'   ptr_x:  where to write X-axis data (pointer)
+'   ptr_y:  where to write Y-axis data (pointer)
+'   ptr_z:  where to write Z-axis data (pointer)
     tmp := 0
     readreg(core.GYRO_XOUT_H, 6, @tmp)
 
@@ -413,9 +430,10 @@ PUB gyro_lpf_ena(e=-2): s
 
 
 PUB gyro_lpf_freq(f=-2): c
-' Set gyroscope output data low-pass filter cutoff frequency, in Hz
-'   Valid values: 5, 10, 21, 44, 94, 184, 260 
-'   Any other value polls the chip and returns the current setting
+' Set gyroscope output data low-pass filter cutoff frequency
+'   f: (Hz)
+'       5, 10, 21, 44, 94, 184, 260 (default)
+'       other values:   returns the current setting
     c := readreg(core.CONFIG)
     case f
         5, 10, 21, 44, 94, 184, 260:
@@ -427,9 +445,10 @@ PUB gyro_lpf_freq(f=-2): c
 
 
 PUB gyro_scale(s=-2): c
-' Set gyroscope full-scale range, in degrees per second
-'   Valid values: *250, 500, 1000, 2000
-'   Any other value polls the chip and returns the current setting
+' Set gyroscope full-scale range
+'   s: (degrees per second)
+'       250, 500, 1000, 2000 (default: 250)
+'       other values:   returns the current setting
     c := readreg(core.GYRO_CFG)
     case s
         250, 500, 1000, 2000:
@@ -445,8 +464,9 @@ PUB gyro_scale(s=-2): c
 
 PUB int_polarity(p=-2): c
 ' Set interrupt pin active state/logic level
-'   Valid values: LOW (1), *HIGH (0)
-'   Any other value polls the chip and returns the current setting
+'   p:
+'       LOW (1), HIGH (0) (default: HIGH)
+'       other values:   returns the current setting
     c := readreg(core.INT_PIN_CFG)
     case p
         LOW, HIGH:
@@ -459,10 +479,10 @@ PUB int_polarity(p=-2): c
 
 PUB int_clear_mode(m=-2): c
 ' Select mode by which interrupt status may be cleared
-'   Valid values:
-'      *READ_INT_FLAG (0): Only by reading interrupt flags
-'       ANY (1): By any read operation
-'   Any other value polls the chip and returns the current setting
+'   m:
+'       READ_INT_FLAG (0):  Only by reading interrupt flags (default)
+'       ANY (1):            By any read operation
+'       other values:       returns the current setting
     c := readreg(core.INT_PIN_CFG)
     case m
         ANY, READ_INT_FLAG:
@@ -485,10 +505,10 @@ PUB interrupt(): f
 
 PUB int_latch_ena(l=-2): c
 ' Latch interrupt pin when interrupt asserted
-'   Valid values:
-'      *FALSE (0): Interrupt pin is pulsed (width = 50uS)
-'       TRUE (-1): Interrupt pin is latched, and must be cleared explicitly
-'   Any other value polls the chip and returns the current setting
+'   l:
+'       FALSE (0):      Interrupt pin is pulsed (default; width = 50uS)
+'       TRUE (-1):      Interrupt pin is latched, and must be cleared explicitly
+'       other values:   returns the current setting
     c := readreg(core.INT_PIN_CFG)
     case abs(l)
         0, 1:
@@ -508,6 +528,7 @@ PUB int_mask(m=-2): c
 '       3   Enable FSYNC interrupt                   INT_FSYNC           (8)
 '       1   Enable raw Sensor Data Ready interrupt   INT_SENSOR_READY    (1)
 '       other values:   returns the current setting
+
     case m
         0..$ff:
             m &= core.INT_ENABLE_MASK           ' mask off unused bits
@@ -518,10 +539,10 @@ PUB int_mask(m=-2): c
 
 PUB int_outp_type(t=-2): c
 ' Set interrupt pin output mode
-'   Valid values:
-'      *INT_PP (0): Push-pull
-'       INT_OD (1): Open-drain
-'   Any other value polls the chip and returns the current setting
+'   t:
+'       INT_PP (0):     Push-pull
+'       INT_OD (1):     Open-drain
+'       other values:   returns the current setting
     c := readreg(core.INT_PIN_CFG)
     case t
         INT_PP, INT_OD:
@@ -539,10 +560,14 @@ PUB reset()
 
 PUB sleep(s=-2): c
 ' Enable low-power sleep mode
+'   s:
+'       TRUE (-1 or 1): enabled
+'       FALSE (0):      disabled
+'       other values:   returns the current setting
     c := readreg(core.PWR_MGMT_1)
-    case s
+    case abs(s)
         0, 1:
-            s := s << core.SLEEP
+            s := (s & 1) << core.SLEEP
             s := ((c & core.SLEEP_MASK) | s)
             writereg(core.PWR_MGMT_1, s)
         other:
@@ -570,11 +595,11 @@ PUB temperature(): t
 
 
 PUB temp_scale(s=-2): c
-' Set temperature scale used by Temperature method
-'   Valid values:
+' Set temperature scale
+'   s:
 '       C (0): Celsius
 '       F (1): Fahrenheit
-'   Any other value returns the current setting
+'       other values:   returns the current setting
     case s
         C, F:
             _temp_scale := s
@@ -610,7 +635,7 @@ PUB xlg_data_rdy(): f
 
 
 PRI readreg(reg_nr, len=1, p_dest=0): v | cmd_pkt
-' Read nr_bytes from the slave device ptr_buff
+' Read value from register(s)
     v := 0
     case reg_nr                                 ' validate reg
         core.SELF_TEST_X..core.SELF_TEST_A, core.SMPLRT_DIV..core.ACCEL_CFG, ...
@@ -620,7 +645,7 @@ PRI readreg(reg_nr, len=1, p_dest=0): v | cmd_pkt
             { accel/gyro regs }
             cmd_pkt.byte[0] := (SLAVE_WR | _addr_bits)
             cmd_pkt.byte[1] := reg_nr.byte[0]
-            if ( len =< 4 )
+            if ( len <= 4 )
                 p_dest := @v
             i2c.start()
             i2c.wrblock_lsbf(@cmd_pkt, 2)
@@ -633,7 +658,7 @@ PRI readreg(reg_nr, len=1, p_dest=0): v | cmd_pkt
 
 
 PRI writereg(reg_nr, val) | cmd_pkt
-' Write nr_bytes to the slave device from ptr_buff
+' Write value to register
     case reg_nr                                 ' validate reg
         core.SELF_TEST_X..core.SELF_TEST_A, ...
         core.SMPLRT_DIV..core.ACCEL_CFG, core.FIFO_EN..core.I2C_SLV4_CTRL, core.INT_PIN_CFG, ...
