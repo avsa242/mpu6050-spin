@@ -532,10 +532,9 @@ PUB int_outp_type(t=-2): c
             return ((c >> core.OPEN) & 1)
 
 
-PUB reset() | tmp
+PUB reset()
 ' Perform soft-reset
-    tmp := core.XLG_SOFT_RST
-    writereg(core.PWR_MGMT_1, tmp)
+    writereg(core.PWR_MGMT_1, core.XLG_SOFT_RST)
 
 
 PUB sleep(s=-2): c
