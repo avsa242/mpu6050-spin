@@ -199,8 +199,10 @@ PUB accel_data(ptr_x, ptr_y, ptr_z) | tmp[2]
 
 PUB accel_data_rate = xlg_data_rate
 ' Set accelerometer output data rate, in Hz
-'   Valid values: 32..1000
-'   Any other value polls the chip and returns the current setting
+'   r:
+'       32..1000 when low-pass filtering is enabled
+'       32..8000 when low-pass filtering is disabled
+'       other values:   returns the current setting
 
 
 PUB accel_data_rdy(): f
@@ -397,8 +399,10 @@ PUB gyro_data(ptr_x, ptr_y, ptr_z) | tmp[2]
 
 PUB gyro_data_rate = xlg_data_rate
 ' Set gyroscope output data rate, in Hz
-'   Valid values: 32..1000
-'   Any other value polls the chip and returns the current setting
+'   r:
+'       32..1000 when low-pass filtering is enabled
+'       32..8000 when low-pass filtering is disabled
+'       other values:   returns the current setting
 
 
 PUB gyro_data_rdy(): f
@@ -554,8 +558,11 @@ PUB sleep(s=-2): c
 
 PUB temp_data_rate = xlg_data_rate
 ' Set temperature output data rate, in Hz
-'   Valid values: 32..1000
-'   Any other value polls the chip and returns the current setting
+'   r:
+'       32..1000 when low-pass filtering is enabled
+'       32..8000 when low-pass filtering is disabled
+'       other values:   returns the current setting
+
 '   NOTE: This setting affects the accelerometer and gyroscope data rate
 '   (hardware limitation)
 
