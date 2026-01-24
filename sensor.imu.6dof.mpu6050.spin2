@@ -4,7 +4,7 @@
     Description:    Driver for the InvenSense MPU6050 IMU
     Author:         Jesse Burt
     Started:        Nov 6, 2022
-    Updated:        Jan 22, 2026
+    Updated:        Jan 24, 2026
     Copyright (c) 2026 - See end of file for terms of use.
 ----------------------------------------------------------------------------------------------------
 }
@@ -203,10 +203,9 @@ PUB accel_data_rate = xlg_data_rate
 '       other values:   returns the current setting
 
 
-PUB accel_data_rdy(): f
+PUB accel_data_rdy = xlg_data_rdy
 ' Flag indicating new accelerometer data available
 '   Returns: TRUE (-1) if new data available, FALSE (0) otherwise
-    return xlg_data_rdy()
 
 
 PUB accel_lpf_freq(f=-2): c
@@ -416,10 +415,9 @@ PUB gyro_data_rate = xlg_data_rate
 '       other values:   returns the current setting
 
 
-PUB gyro_data_rdy(): f
+PUB gyro_data_rdy = xlg_data_rdy
 ' Flag indicating new gyroscope data available
 '   Returns: TRUE (-1) if new data available, FALSE (0) otherwise
-    return xlg_data_rdy()
 
 
 PUB gyro_lpf_ena(e=-2): s
@@ -637,42 +635,30 @@ PUB xlg_data_rdy(): f
 PRI readreg(reg_nr, len=1, p_dest=0): v | cmd_pkt
 ' Read value from register(s)
     v := 0
-    case reg_nr                                 ' validate reg
-        core.SELF_TEST_X..core.SELF_TEST_A, core.SMPLRT_DIV..core.ACCEL_CFG, ...
-        core.FIFO_EN..core.INT_ENABLE, core.INT_STATUS..core.EXT_SENS_DATA_23, ...
-        core.I2C_SLV0_DO..core.SIGNAL_PATH_RESET, core.USER_CTRL..core.PWR_MGMT_2, ...
-        core.FIFO_COUNTH..core.WHO_AM_I:
-            { accel/gyro regs }
-            cmd_pkt.byte[0] := (SLAVE_WR | _addr_bits)
-            cmd_pkt.byte[1] := reg_nr.byte[0]
-            if ( len <= 4 )
-                p_dest := @v
-            i2c.start()
-            i2c.wrblock_lsbf(@cmd_pkt, 2)
-            i2c.start()
-            i2c.write(SLAVE_RD | _addr_bits)
-            i2c.rdblock_msbf(p_dest, len, i2c.NAK)
-            i2c.stop()
-        other:
-            return
+
+    cmd_pkt.byte[0] := (SLAVE_WR | _addr_bits)
+    cmd_pkt.byte[1] := reg_nr.byte[0]
+
+    if ( len <= 4 )
+        p_dest := @v
+
+    i2c.start()
+    i2c.wrblock_lsbf(@cmd_pkt, 2)
+    i2c.start()
+    i2c.write(SLAVE_RD | _addr_bits)
+    i2c.rdblock_msbf(p_dest, len, i2c.NAK)
+    i2c.stop()
 
 
 PRI writereg(reg_nr, val) | cmd_pkt
 ' Write value to register
-    case reg_nr                                 ' validate reg
-        core.SELF_TEST_X..core.SELF_TEST_A, ...
-        core.SMPLRT_DIV..core.ACCEL_CFG, core.FIFO_EN..core.I2C_SLV4_CTRL, core.INT_PIN_CFG, ...
-        core.INT_ENABLE, core.I2C_SLV0_DO..core.SIGNAL_PATH_RESET, ...
-        core.USER_CTRL..core.PWR_MGMT_2, core.FIFO_COUNTH..core.FIFO_R_W:
-            { accel/gyro regs }
-            cmd_pkt.byte[0] := (SLAVE_WR | _addr_bits)
-            cmd_pkt.byte[1] := reg_nr.byte[0]
-            i2c.start()
-            i2c.wrblock_lsbf(@cmd_pkt, 2)
-            i2c.wrblock_msbf(@val, 1)
-            i2c.stop()
-        other:
-            return
+    cmd_pkt.byte[0] := (SLAVE_WR | _addr_bits)
+    cmd_pkt.byte[1] := reg_nr.byte[0]
+
+    i2c.start()
+    i2c.wrblock_lsbf(@cmd_pkt, 2)
+    i2c.wrblock_msbf(@val, 1)
+    i2c.stop()
 
 
 DAT
