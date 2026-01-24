@@ -35,8 +35,8 @@ CON
     CAL_XL_SCL          = 2
     CAL_G_SCL           = 250
     CAL_M_SCL           = 0
-    CAL_XL_DR           = 400
-    CAL_G_DR            = 400
+    CAL_XL_DR           = 100
+    CAL_G_DR            = 100
     CAL_M_DR            = 0
 
 ' Interrupt active level
