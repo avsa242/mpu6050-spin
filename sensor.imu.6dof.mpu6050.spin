@@ -248,7 +248,7 @@ PUB accel_scale(s=-2): c
             return lookupz(c: 2, 4, 8, 16)
 
 
-PUB clock_s(s=-2): c
+PUB clock_src(s=-2): c
 ' Set sensor clock source
 '   s:
 '       INT8 (0):           Internal 8MHz oscillator
